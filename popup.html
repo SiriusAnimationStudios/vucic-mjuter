@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  body { font: 13px/1.4 system-ui, sans-serif; width: 360px; margin: 0; padding: 12px; color: #1d1d1f; }
+  h1 { font-size: 15px; margin: 0 0 10px; display: flex; justify-content: space-between; align-items: center; }
+  label { display: block; margin: 8px 0 3px; font-weight: 600; }
+  .row { display: flex; gap: 8px; }
+  .row > div { flex: 1; }
+  textarea, input[type=number], select { width: 100%; box-sizing: border-box; font: inherit; padding: 4px 6px; border: 1px solid #ccc; border-radius: 6px; }
+  textarea { height: 70px; resize: vertical; }
+  .hint { color: #777; font-size: 11px; font-weight: normal; }
+  .status { margin-top: 12px; padding: 8px; border-radius: 8px; background: #f3f3f5; }
+  .badge { display: inline-block; padding: 1px 8px; border-radius: 10px; font-weight: 600; font-size: 12px; }
+  .muted { background: #ffd9d9; color: #a00; }
+  .live { background: #d9f5df; color: #0a6b25; }
+  .idle { background: #e5e5e5; color: #555; }
+  .snooze { background: #fff0c2; color: #8a6200; }
+  pre { white-space: pre-wrap; word-break: break-word; max-height: 80px; overflow: auto; background: #fff; border: 1px solid #ddd; border-radius: 6px; padding: 4px 6px; margin: 4px 0 0; font-size: 11px; }
+  img { width: 100%; border: 1px solid #ddd; border-radius: 6px; margin-top: 4px; background: #fff; }
+  button { margin-top: 8px; padding: 6px 10px; border: 0; border-radius: 6px; background: #1d1d1f; color: #fff; font: inherit; cursor: pointer; }
+  .err { color: #b00; font-size: 12px; }
+  .switch { font-weight: normal; display: flex; align-items: center; gap: 6px; margin: 0; }
+</style>
+</head>
+<body>
+  <h1>Vučić Mjuter
+    <label class="switch"><input type="checkbox" id="enabled"> On</label>
+  </h1>
+
+  <label>Mute when these appear <span class="hint">(one per line, Cyrillic or Latin both match)</span></label>
+  <textarea id="keywords"></textarea>
+
+  <div class="row">
+    <div>
+      <label>Scan from % <span class="hint">top of strip</span></label>
+      <input type="number" id="regionTopPct" min="0" max="99">
+    </div>
+    <div>
+      <label>to % <span class="hint">bottom</span></label>
+      <input type="number" id="regionBottomPct" min="1" max="100">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Text color</label>
+      <select id="textColor">
+        <option value="light">Light text on dark</option>
+        <option value="dark">Dark text on light</option>
+      </select>
+    </div>
+    <div>
+      <label>Scan every (s)</label>
+      <input type="number" id="intervalSec" min="0.5" max="30" step="0.5">
+    </div>
+  </div>
+
+  <div class="row">
+    <div>
+      <label>Unmute after text gone (s) <span class="hint">0 = stay muted</span></label>
+      <input type="number" id="unmuteAfterSec" min="0" max="600" step="1">
+    </div>
+    <div>
+      <label>&nbsp;</label>
+      <label class="switch"><input type="checkbox" id="fuzzy"> Tolerate OCR errors</label>
+    </div>
+  </div>
+
+  <div class="status" id="status">Open a YouTube video in this tab.</div>
+
+  <script src="defaults.js"></script>
+  <script src="popup.js"></script>
+</body>
+</html>
