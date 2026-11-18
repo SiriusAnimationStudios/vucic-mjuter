@@ -1,32 +1,23 @@
-// Content script on youtube.com: grabs the bottom strip of the video, sends it for OCR,
-// mutes the tab while a keyword is visible and unmutes once it has been gone for a while.
+// Vučić Mjuter — content script on youtube.com.
+// Grabs the bottom strip of the video, sends it for OCR, mutes the tab while a keyword is visible
+// and unmutes once it has been gone for a while. Settings are fixed (no user options in this version).
 
 (() => {
-  const DEFAULTS = {
-    enabled: true,
+  const CONFIG = {
     keywords: ["Вучић", "Србија побеђује"],
-    intervalSec: 1,
-    regionTopPct: 85,
-    regionBottomPct: 100,
-    textColor: "light",
-    unmuteAfterSec: 10,
-    fuzzy: true
+    intervalSec: 1,          // how often a frame is read
+    regionTopPct: 85,        // scan from this % of the video height...
+    regionBottomPct: 100,    // ...down to this %
+    unmuteAfterSec: 10,      // unmute after the words have been gone this long
+    fuzzy: true              // tolerate small OCR errors in longer keywords
   };
 
-  let settings = { ...DEFAULTS };
   const state = {
     mutedByUs: false,
     snoozed: false,        // user unmuted manually -> don't re-mute until the text is gone once
     lastMatchAt: 0,
-    lastMatchWord: "",
-    lastText: "",
-    lastImage: "",
-    lastError: "",
-    lastMs: 0,
-    lastScanAt: 0,
     lastFrameCount: -1,
     lastAttemptAt: 0,
-    frozen: false,         // video frames stopped updating (Chrome paused video decoding)
     busy: false
   };
 
@@ -76,10 +67,10 @@
   function findKeyword(rawText) {
     const txt = normalize(rawText);
     const txtNoSpace = txt.replace(/ /g, "");
-    for (const kw of settings.keywords) {
+    for (const kw of CONFIG.keywords) {
       const pat = normalize(kw);
       if (!pat) continue;
-      const maxErr = settings.fuzzy ? Math.floor(pat.length * 0.15) : 0;
+      const maxErr = CONFIG.fuzzy ? Math.floor(pat.length * 0.15) : 0;
       if (approxContains(txt, pat, maxErr)) return kw;
       // OCR sometimes drops/merges spaces
       const patNoSpace = pat.replace(/ /g, "");
@@ -106,8 +97,8 @@
   function captureStrip(video) {
     const vw = video.videoWidth, vh = video.videoHeight;
     if (!vw || !vh) return null;
-    const top = Math.max(0, Math.min(99, settings.regionTopPct)) / 100;
-    const bottom = Math.max(top * 100 + 1, Math.min(100, settings.regionBottomPct)) / 100;
+    const top = CONFIG.regionTopPct / 100;
+    const bottom = CONFIG.regionBottomPct / 100;
     const sy = Math.round(vh * top);
     const sh = Math.max(8, Math.round(vh * (bottom - top)));
 
@@ -121,15 +112,11 @@
     ctx.imageSmoothingQuality = "high";
     ctx.drawImage(video, 0, sy, vw, sh, 0, 0, dw, dh);
 
-    // Binarize to black text on white paper
+    // Binarize to black text on white paper: only bright white pixels count as text
     const img = ctx.getImageData(0, 0, dw, dh); // throws if canvas is tainted
     const d = img.data;
-    const light = settings.textColor !== "dark";
     for (let i = 0; i < d.length; i += 4) {
-      const r = d[i], g = d[i + 1], b = d[i + 2];
-      const ink = light ? Math.min(r, g, b) > 200   // bright white text only (ignores shirts, skin, bright colors)
-                        : Math.max(r, g, b) < 90;   // dark text
-      const v = ink ? 0 : 255;
+      const v = Math.min(d[i], d[i + 1], d[i + 2]) > 200 ? 0 : 255;
       d[i] = d[i + 1] = d[i + 2] = v;
       d[i + 3] = 255;
     }
@@ -156,31 +143,24 @@
   async function scan() {
     if (state.busy) return;
     state.lastAttemptAt = Date.now();
-    if (!settings.enabled) {
-      if (state.mutedByUs) await setMuted(false);
-      return;
-    }
+
     const video = getVideo();
     if (!video || video.readyState < 2 || video.paused || video.ended) return;
 
-    // In background tabs Chrome may stop decoding video; a frozen frame would give stale results,
-    // so hold the current state until new frames arrive.
+    // If Chrome stops decoding video (frozen frame), hold the current state until new frames arrive
     const fc = frameCount(video);
-    if (fc !== -1 && fc === state.lastFrameCount) { state.frozen = true; return; }
-    state.frozen = false;
+    if (fc !== -1 && fc === state.lastFrameCount) return;
     state.lastFrameCount = fc;
 
     let image;
     try {
       image = captureStrip(video);
     } catch (e) {
-      state.lastError = "Cannot read video frame: " + (e && e.message || e);
       return;
     }
     if (!image) return;
 
     state.busy = true;
-    state.lastImage = image;
     let res;
     try {
       res = await new Promise((resolve) => {
@@ -190,32 +170,23 @@
       res = null;
     }
     state.busy = false;
-    state.lastScanAt = Date.now();
-
-    if (!res || !res.ok) {
-      state.lastError = "OCR failed: " + (res && res.error || "no response");
-      return;
-    }
-    state.lastError = "";
-    state.lastText = res.text.trim();
-    state.lastMs = res.ms;
+    if (!res || !res.ok) return;
 
     const hit = findKeyword(res.text);
     const now = Date.now();
     if (hit) {
       state.lastMatchAt = now;
-      state.lastMatchWord = hit;
       // Always ask the background (cheap): it checks Chrome's real mute state, so nothing can get out of sync
       if (!state.snoozed) await setMuted(true);
     } else {
       if (state.snoozed) state.snoozed = false; // text gone -> re-arm
-      if (settings.unmuteAfterSec > 0 && now - state.lastMatchAt >= settings.unmuteAfterSec * 1000) {
+      if (now - state.lastMatchAt >= CONFIG.unmuteAfterSec * 1000) {
         await setMuted(false); // background only unmutes if this extension muted the tab
       }
     }
   }
 
-  const intervalMs = () => Math.max(0.5, Number(settings.intervalSec) || 2) * 1000;
+  const intervalMs = CONFIG.intervalSec * 1000;
 
   // Two drivers for scanning:
   // 1) a normal timer;
@@ -225,53 +196,22 @@
   let timer = null;
   function loop() {
     clearTimeout(timer);
-    scan().finally(() => { timer = setTimeout(loop, intervalMs()); });
+    scan().finally(() => { timer = setTimeout(loop, intervalMs); });
   }
 
   document.addEventListener("timeupdate", () => {
-    if (!state.busy && Date.now() - state.lastAttemptAt >= intervalMs()) scan();
+    if (!state.busy && Date.now() - state.lastAttemptAt >= intervalMs) scan();
   }, true); // capture phase: media events don't bubble
-
-  // ---------- settings & messages ----------
-
-  chrome.storage.sync.get(DEFAULTS, (s) => {
-    settings = { ...DEFAULTS, ...s };
-    loop();
-  });
-
-  chrome.storage.onChanged.addListener((changes, area) => {
-    if (area !== "sync") return;
-    for (const k of Object.keys(changes)) settings[k] = changes[k].newValue;
-    state.lastFrameCount = -1;
-  });
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === "userUnmuted") {
-      // Only snooze if the words are actually on screen right now; otherwise there is nothing to snooze
-      if (Date.now() - state.lastMatchAt < Math.max(3000, intervalMs() * 2)) state.snoozed = true;
+      // Only snooze if the words are actually on screen right now
+      if (Date.now() - state.lastMatchAt < Math.max(3000, intervalMs * 2)) state.snoozed = true;
       state.mutedByUs = false;
       sendResponse({ ok: true });
-      return false;
-    }
-    if (msg.type === "getStatus") {
-      const video = getVideo();
-      sendResponse({
-        hasVideo: !!video,
-        playing: !!(video && !video.paused && !video.ended),
-        hidden: document.hidden,
-        mutedByUs: state.mutedByUs,
-        snoozed: state.snoozed,
-        lastText: state.lastText,
-        lastMatchWord: state.lastMatchWord,
-        lastMatchAt: state.lastMatchAt,
-        lastScanAt: state.lastScanAt,
-        lastImage: state.lastImage,
-        lastError: state.lastError,
-        frozen: state.frozen,
-        lastMs: state.lastMs
-      });
-      return false;
     }
     return false;
   });
+
+  loop();
 })();

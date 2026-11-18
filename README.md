@@ -12,30 +12,19 @@ Ovo je Chrome ekstenzija koja utišava YouTube tab kada se na ekranu pojavi bilo
 3. Uključi **Developer mode** (gore desno).
 4. Klikni **Load unpacked** (gore levo) i izaberi raspakovani folder, onaj u kome se direktno nalazi `manifest.json`.
 5. Klikni ikonicu slagalice pored adresne trake i zakači (pin) **Vučić Mjuter**.
-6. Osveži YouTube tab koji je već bio otvoren (F5), pusti prenos i klikni crvenu ikonicu da vidiš kako radi.
+6. Osveži YouTube tab koji je već bio otvoren (F5) i pusti prenos.
 7. Uživaj.
 
 Za ažuriranje kasnije: skini novi ZIP, zameni sadržaj foldera i klikni dugme za osvežavanje ↻ na ekstenziji u `chrome://extensions`.
-
-## Podešavanja (klikni ikonicu ekstenzije)
-
-| Podešavanje | Podrazumevano | Šta radi |
-|---|---|---|
-| Reči | `Вучић`, `Србија побеђује` | Utišava kada se bilo koja od njih vidi na ekranu. Jedna reč po redu; ćirilica i latinica se poklapaju (`Vučić` = `Вучић`). |
-| Skeniraj od / do % | 85–100 | Koji vodoravni pojas videa se čita. |
-| Boja teksta | Svetao na tamnom | Izaberi "Taman na svetlom" za crne natpise na svetloj traci. |
-| Skeniraj svakih | 1 s | Koliko često se čita slika. |
-| Vrati zvuk posle | 10 s | Vraća zvuk kada reči nema toliko sekundi zaredom. 0 = ostaje utišano. |
-| Toleriši OCR greške | Uključeno | Dozvoljava par pogrešno pročitanih slova u dužim rečima. |
-
-Prozorčić ekstenzije prikazuje tačno onu sliku koju OCR čita i tekst koji je pronašao, pa možeš da pomeriš pojas ako tvoj prenos stavlja natpise negde drugde.
-
-Ako ručno vratiš zvuk dok su reči još na ekranu, ekstenzija čeka da nestanu pre nego što ponovo utiša.
 
 ## Brzina
 
 - Utišava oko 1 s nakon što se natpis pojavi.
 - Vraća zvuk oko 10 s nakon što natpis nestane. Svaki put kad ponovo vidi reči, odbrojavanje kreće od nule, tako da kratke greške u čitanju (npr. zbog pozadine koja se menja) ne vraćaju zvuk.
+
+## Starija verzija sa podešavanjima
+
+Verzija 1.4 sa svim podešavanjima i prikazom šta OCR čita (za razvoj) nalazi se na grani [`dev-v1.4`](../../tree/dev-v1.4).
 
 ## Zasluge
 
