@@ -1,12 +1,12 @@
 # Vučić Mjuter
 
-**The only way to not listen to Vučić during Narodna skupština.**
+**Jedini način da ne slušaš Vučića tokom Narodne skupštine.**
 
-Chrome extension that **mutes a YouTube tab while chosen words appear in the video picture** (e.g. a TV lower-third caption) and **unmutes it when they disappear**.
+Chrome ekstenzija koja utišava YouTube tab dok se u slici videa pojavljuju izabrane reči (npr. TV natpis sa imenom i strankom na dnu ekrana) i vraća zvuk kada nestanu.
 
-It reads the bottom of the video with OCR (Tesseract, Serbian Cyrillic + Latin), entirely on your computer. Nothing is sent anywhere.
+Čita donji deo videa pomoću OCR-a (Tesseract, srpska ćirilica + latinica), u potpunosti na tvom računaru. Ništa se nikuda ne šalje.
 
-Works while you're on another tab, with Chrome minimized, or with the window covered.
+Radi i dok si na drugom tabu, dok je Chrome minimizovan ili dok je prozor prekriven drugim programom.
 
 ## Install (2 minutes)
 
