@@ -144,8 +144,7 @@
       try {
         chrome.runtime.sendMessage({ type: "mute", muted }, (res) => {
           void chrome.runtime.lastError;
-          if (res && res.ok && !res.skipped && !res.alreadyMutedByUser) state.mutedByUs = muted;
-          if (!muted) state.mutedByUs = false;
+          if (res && res.ok) state.mutedByUs = !!res.mutedByUs;
           resolve(res);
         });
       } catch (e) { resolve(null); } // extension reloaded
@@ -206,12 +205,12 @@
     if (hit) {
       state.lastMatchAt = now;
       state.lastMatchWord = hit;
-      if (!state.snoozed && !state.mutedByUs) await setMuted(true);
+      // Always ask the background (cheap): it checks Chrome's real mute state, so nothing can get out of sync
+      if (!state.snoozed) await setMuted(true);
     } else {
       if (state.snoozed) state.snoozed = false; // text gone -> re-arm
-      if (state.mutedByUs && settings.unmuteAfterSec > 0 &&
-          now - state.lastMatchAt >= settings.unmuteAfterSec * 1000) {
-        await setMuted(false);
+      if (settings.unmuteAfterSec > 0 && now - state.lastMatchAt >= settings.unmuteAfterSec * 1000) {
+        await setMuted(false); // background only unmutes if this extension muted the tab
       }
     }
   }
@@ -248,8 +247,9 @@
 
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (msg.type === "userUnmuted") {
+      // Only snooze if the words are actually on screen right now; otherwise there is nothing to snooze
+      if (Date.now() - state.lastMatchAt < Math.max(3000, intervalMs() * 2)) state.snoozed = true;
       state.mutedByUs = false;
-      state.snoozed = true;
       sendResponse({ ok: true });
       return false;
     }

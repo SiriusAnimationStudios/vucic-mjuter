@@ -2,7 +2,9 @@
 
 **Jedini način da ne slušaš Vučića tokom Narodne skupštine.**
 
-Chrome ekstenzija koja utišava YouTube tab dok se u slici videa pojavljuju izabrane reči (npr. TV natpis sa imenom i strankom na dnu ekrana) i vraća zvuk kada nestanu.
+Ovo je Chrome ekstenzija koja utišava YouTube tab kada se na ekranu pojavi bilo ko iz SNS stranke.
+
+Radi tako što prati natpis sa imenom i strankom na dnu ekrana: dok se na njemu vide izabrane reči, zvuk je isključen, a kada nestanu, zvuk se vraća.
 
 Čita donji deo videa pomoću OCR-a (Tesseract, srpska ćirilica + latinica), u potpunosti na tvom računaru. Ništa se nikuda ne šalje.
 

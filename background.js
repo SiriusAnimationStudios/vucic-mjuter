@@ -1,10 +1,10 @@
 // Service worker: owns the offscreen OCR document and tab muting.
+//
+// Who muted a tab is read from Chrome itself (tab.mutedInfo.reason / extensionId), not kept in memory:
+// the service worker is restarted by Chrome every so often, and in-memory state would be lost.
 
 const OFFSCREEN_URL = "offscreen.html";
 let creatingOffscreen = null;
-
-// tabId -> true when THIS extension muted the tab
-const mutedByUs = new Map();
 
 async function ensureOffscreen() {
   const contexts = await chrome.runtime.getContexts({
@@ -21,15 +21,10 @@ async function ensureOffscreen() {
   try { await creatingOffscreen; } finally { creatingOffscreen = null; }
 }
 
-async function setTabMuted(tabId, muted) {
-  try {
-    await chrome.tabs.update(tabId, { muted });
-    if (muted) mutedByUs.set(tabId, true);
-    else mutedByUs.delete(tabId);
-    return true;
-  } catch (e) {
-    return false;
-  }
+// True when the tab is currently muted by THIS extension
+function mutedByUs(tab) {
+  const mi = tab && tab.mutedInfo;
+  return !!(mi && mi.muted && mi.reason === "extension" && mi.extensionId === chrome.runtime.id);
 }
 
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
@@ -55,27 +50,36 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (msg.type === "mute" && sender.tab) {
     const tabId = sender.tab.id;
     (async () => {
-      if (msg.muted) {
-        // Don't take over a tab the user already muted themselves
+      try {
         const tab = await chrome.tabs.get(tabId);
-        if (tab.mutedInfo && tab.mutedInfo.muted && !mutedByUs.get(tabId)) {
-          sendResponse({ ok: true, alreadyMutedByUser: true });
-          return;
+        if (msg.muted) {
+          if (mutedByUs(tab)) { sendResponse({ ok: true, mutedByUs: true }); return; }
+          if (tab.mutedInfo && tab.mutedInfo.muted) {
+            // The user (or something else) already muted it: leave it alone
+            sendResponse({ ok: true, mutedByUs: false, alreadyMutedByUser: true });
+            return;
+          }
+          await chrome.tabs.update(tabId, { muted: true });
+          sendResponse({ ok: true, mutedByUs: true });
+        } else {
+          // Only unmute if we were the ones who muted it
+          if (mutedByUs(tab)) await chrome.tabs.update(tabId, { muted: false });
+          sendResponse({ ok: true, mutedByUs: false });
         }
-        sendResponse({ ok: await setTabMuted(tabId, true) });
-      } else {
-        // Only unmute if we were the ones who muted it
-        if (!mutedByUs.get(tabId)) { sendResponse({ ok: true, skipped: true }); return; }
-        sendResponse({ ok: await setTabMuted(tabId, false) });
+      } catch (e) {
+        sendResponse({ ok: false, error: String(e && e.message || e) });
       }
     })();
     return true;
   }
 
   if (msg.type === "popupUnmute") {
-    // Manual unmute from the popup: unmute and tell the tab to snooze
+    // Manual unmute from the popup: unmute and tell the tab to snooze until the text goes away
     (async () => {
-      await setTabMuted(msg.tabId, false);
+      try {
+        const tab = await chrome.tabs.get(msg.tabId);
+        if (mutedByUs(tab)) await chrome.tabs.update(msg.tabId, { muted: false });
+      } catch (e) {}
       try { await chrome.tabs.sendMessage(msg.tabId, { type: "userUnmuted" }); } catch (e) {}
       sendResponse({ ok: true });
     })();
@@ -85,13 +89,11 @@ chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   return false;
 });
 
-// If the user unmutes the tab by hand (speaker icon on the tab), snooze until the text goes away
+// The user unmuted the tab by hand (speaker icon on the tab / tab context menu):
+// tell the page so it snoozes until the text disappears. Our own unmutes have reason "extension"
+// and are ignored here.
 chrome.tabs.onUpdated.addListener((tabId, changeInfo) => {
-  if (!changeInfo.mutedInfo) return;
-  if (!changeInfo.mutedInfo.muted && mutedByUs.get(tabId)) {
-    mutedByUs.delete(tabId);
-    chrome.tabs.sendMessage(tabId, { type: "userUnmuted" }).catch(() => {});
-  }
+  const mi = changeInfo.mutedInfo;
+  if (!mi || mi.muted || mi.reason !== "user") return;
+  chrome.tabs.sendMessage(tabId, { type: "userUnmuted" }).catch(() => {});
 });
-
-chrome.tabs.onRemoved.addListener((tabId) => mutedByUs.delete(tabId));
