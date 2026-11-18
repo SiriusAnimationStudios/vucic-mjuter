@@ -4,12 +4,6 @@
 
 Ovo je Chrome ekstenzija koja utišava YouTube tab kada se na ekranu pojavi bilo ko iz SNS stranke.
 
-Radi tako što prati natpis sa imenom i strankom na dnu ekrana: dok se na njemu vide izabrane reči, zvuk je isključen, a kada nestanu, zvuk se vraća.
-
-Čita donji deo videa pomoću OCR-a (Tesseract, srpska ćirilica + latinica), u potpunosti na tvom računaru. Ništa se nikuda ne šalje.
-
-Radi i dok si na drugom tabu, dok je Chrome minimizovan ili dok je prozor prekriven drugim programom.
-
 ## Instalacija (2 minuta)
 
 1. Na ovoj stranici klikni zeleno dugme **Code** → **Download ZIP**.
@@ -19,6 +13,7 @@ Radi i dok si na drugom tabu, dok je Chrome minimizovan ili dok je prozor prekri
 4. Klikni **Load unpacked** (gore levo) i izaberi raspakovani folder, onaj u kome se direktno nalazi `manifest.json`.
 5. Klikni ikonicu slagalice pored adresne trake i zakači (pin) **Vučić Mjuter**.
 6. Osveži YouTube tab koji je već bio otvoren (F5), pusti prenos i klikni crvenu ikonicu da vidiš kako radi.
+7. Uživaj.
 
 Za ažuriranje kasnije: skini novi ZIP, zameni sadržaj foldera i klikni dugme za osvežavanje ↻ na ekstenziji u `chrome://extensions`.
 
