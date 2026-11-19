@@ -17,6 +17,11 @@ Ovo je Chrome ekstenzija koja utišava YouTube tab kada se na ekranu pojavi bilo
 
 Za ažuriranje kasnije: skini novi ZIP, zameni sadržaj foldera i klikni dugme za osvežavanje ↻ na ekstenziji u `chrome://extensions`.
 
+## Šta utišava
+
+- Svakog govornika čiji natpis na dnu ekrana sadrži „Вучић“ ili „Србија побеђује“, i kada natpis delimično prelazi preko belih klupa ili monitora.
+- Kadar predsedavajućeg (drvena izrezbarena stolica), iako tamo nema natpisa. Napomena: utišava se svako ko u tom trenutku predsedava.
+
 ## Brzina
 
 - Utišava oko 1 s nakon što se natpis pojavi.

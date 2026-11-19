@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vučić Mjuter",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "Mutes a YouTube tab while chosen words appear in the video picture (OCR), and unmutes when they disappear.",
   "permissions": ["offscreen"],
   "host_permissions": ["*://*.youtube.com/*"],
