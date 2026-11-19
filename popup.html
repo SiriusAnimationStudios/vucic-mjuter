@@ -4,22 +4,78 @@
 <meta charset="utf-8">
 <style>
   html, body { margin: 0; padding: 0; background: #0e0e10; }
-  body { width: 260px; font-family: "Arial Black", "Segoe UI Black", Impact, system-ui, sans-serif; }
-  img { display: block; width: 100%; height: auto; }
+  body { width: 260px; font-family: "Arial Black", "Segoe UI Black", Impact, system-ui, sans-serif; user-select: none; }
+
+  .photo { position: relative; }
+  .photo img { display: block; width: 100%; height: auto; }
+
+  /* Round button sitting over the mouth */
+  #toggle {
+    position: absolute;
+    left: 50.4%;
+    top: 58.5%;
+    width: 19.3%;
+    aspect-ratio: 1;
+    transform: translate(-50%, -50%);
+    border-radius: 50%;
+    border: 3px solid #fff;
+    padding: 0;
+    cursor: pointer;
+    display: grid;
+    place-items: center;
+    box-shadow: 0 3px 8px rgba(0, 0, 0, .55);
+    transition: transform .12s, background-color .15s;
+  }
+  #toggle:hover { transform: translate(-50%, -50%) scale(1.08); }
+  #toggle:active { transform: translate(-50%, -50%) scale(.95); }
+  #toggle svg { width: 68%; height: 68%; }
+
+  #toggle.on  { background: #e1141e; }   /* muting active */
+  #toggle.off { background: #2e9e4f; }   /* extension off: sound plays */
+  #toggle.on  .ico-sound { display: none; }
+  #toggle.off .ico-muted { display: none; }
+
   h1 {
     margin: 0;
-    padding: 10px 0 12px;
+    padding: 10px 0 2px;
     text-align: center;
-    color: #e1141e;
     font-size: 40px;
     font-weight: 900;
     letter-spacing: 4px;
     line-height: 1;
+    transition: color .15s;
+  }
+  h1.on  { color: #e1141e; }
+  h1.off { color: #55555c; }
+
+  #state {
+    margin: 0;
+    padding: 0 0 10px;
+    text-align: center;
+    font: 600 12px system-ui, sans-serif;
+    color: #9a9aa2;
   }
 </style>
 </head>
 <body>
-  <img src="img/vucic_mjuter.jpg" alt="">
-  <h1>MJUTER</h1>
+  <div class="photo">
+    <img src="img/vucic.jpg" alt="">
+    <button id="toggle" class="on" title="Uključi / isključi">
+      <!-- speaker with X: muting active -->
+      <svg class="ico-muted" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5h3.5L11 5.5v13l-4.5-4H3z" fill="#fff"/>
+        <path d="M15.5 9.5l5 5M20.5 9.5l-5 5"/>
+      </svg>
+      <!-- speaker with sound waves: extension off -->
+      <svg class="ico-sound" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9.5h3.5L11 5.5v13l-4.5-4H3z" fill="#fff"/>
+        <path d="M14.5 9.2a4 4 0 0 1 0 5.6"/>
+        <path d="M17.3 6.6a7.6 7.6 0 0 1 0 10.8"/>
+      </svg>
+    </button>
+  </div>
+  <h1 id="title" class="on">MJUTER</h1>
+  <p id="state">Uključen</p>
+  <script src="popup.js"></script>
 </body>
 </html>

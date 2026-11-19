@@ -19,8 +19,13 @@ Za ažuriranje kasnije: skini novi ZIP, zameni sadržaj foldera i klikni dugme z
 
 ## Šta utišava
 
-- Svakog govornika čiji natpis na dnu ekrana sadrži „Вучић“ ili „Србија побеђује“, i kada natpis delimično prelazi preko belih klupa ili monitora.
-- Kadar predsedavajućeg (drvena izrezbarena stolica), iako tamo nema natpisa. Napomena: utišava se svako ko u tom trenutku predsedava.
+Svakog govornika čiji natpis na dnu ekrana sadrži „Вучић“ ili „Србија побеђује“.
+
+## Uključivanje i isključivanje
+
+Klikni ikonicu ekstenzije, pa dugme preko Vučićevih usta:
+- crveno (zvučnik sa X): ekstenzija radi i utišava,
+- zeleno (zvučnik sa talasima): ekstenzija je isključena i zvuk se čuje.
 
 ## Brzina
 
